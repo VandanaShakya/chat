@@ -13,9 +13,8 @@ function Chat() {
   const bottomRef = useRef(null);
   const selectedUserRef = useRef(null);
 
-  const BASE_URL = import.meta.env.VITE_BASE_URL; // 🔥 ADDED
-  const USERS_API = `${BASE_URL}/message/users`;
-  const HISTORY_API_BASE = `${BASE_URL}/message/get`;
+  const USERS_API = `${import.meta.env.VITE_BASE_URL}/message/users`;
+  const HISTORY_API_BASE = `${import.meta.env.VITE_BASE_URL}/message/get`;
 
   const LAST_SELECTED_USER_KEY = "lastSelectedChatUserId";
 
@@ -136,7 +135,7 @@ function Chat() {
     }
 
     const res = await fetch(
-      `${BASE_URL}/message/send/${selectedUser._id}`,
+      `${import.meta.env.VITE_BASE_URL}/message/send/${selectedUser._id}`,
       {
         method: "POST",
         credentials: "include",
