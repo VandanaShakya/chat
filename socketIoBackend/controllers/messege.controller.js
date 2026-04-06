@@ -40,9 +40,9 @@ export const sendMessage = async (req, res) => {
       });
 
       let aiReply = "⚠️ AI not available";
-
+      const ai = openai(); 
       try {
-        const response = await openai.chat.completions.create({
+        const response = await ai.chat.completions.create({
           model: "llama-3.3-70b-versatile",
           messages
         });
