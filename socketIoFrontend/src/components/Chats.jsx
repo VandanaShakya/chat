@@ -13,7 +13,7 @@ function Chat() {
   const bottomRef = useRef(null);
   const selectedUserRef = useRef(null);
 
-  const BASE_URL = "http://localhost:4000/api"; // 🔥 ADDED
+  const BASE_URL = import.meta.env.VITE_BASE_URL; // 🔥 ADDED
   const USERS_API = `${BASE_URL}/message/users`;
   const HISTORY_API_BASE = `${BASE_URL}/message/get`;
 
