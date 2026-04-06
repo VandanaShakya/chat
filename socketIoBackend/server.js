@@ -17,28 +17,16 @@ import { createAIUser } from "./controllers/messege.controller.js";
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-const allowedOrigins = (process.env.FRONTEND_URL || "")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      // allow same-origin / server-to-server / health checks
-      if (!origin) return cb(null, true);
-      if (allowedOrigins.length === 0) return cb(null, false);
-      return cb(null, allowedOrigins.includes(origin));
-    },
-    credentials: true
-  })
-);
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: { 
-    origin: allowedOrigins,
+    origin: process.env.FRONTEND_URL,
     credentials: true
   }
 });
@@ -49,13 +37,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes)
 app.use("/api/message", messageRoutes)
 
-app.get("/health", (_req, res) => res.status(200).send("ok"));
-
-  server.listen(process.env.PORT || 4000, () => {
+  server.listen(4000, () => {
     connectDB();
     createAIUser();
     console.log("AI User created");
-      console.log(`🚀 Server running on ${process.env.PORT || 4000}`);
+      console.log("🚀 Server running on 4000");
   });
 
 
