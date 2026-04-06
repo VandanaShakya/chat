@@ -34,7 +34,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+// Express (newer versions on Render) doesn't accept "*" here; use a regexp.
+app.options(/.*/, cors(corsOptions));
 
 const server = http.createServer(app);
 
