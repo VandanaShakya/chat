@@ -50,11 +50,26 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes)
 app.use("/api/message", messageRoutes)
 
-  server.listen(process.env.PORT, () => {
-    connectDB();
-    createAIUser();
-    console.log("AI User created");
-      console.log(`🚀 Server running on ${process.env.PORT}`);
-  });
+const PORT = Number(process.env.PORT) || 4000;
+
+async function start() {
+  try {
+    if (!process.env.MONGO_URL) {
+      throw new Error("Missing env var MONGO_URL");
+    }
+
+    await connectDB();
+    await createAIUser();
+
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to start server:", err?.message || err);
+    process.exit(1);
+  }
+}
+
+start();
 
 
