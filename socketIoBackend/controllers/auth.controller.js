@@ -35,9 +35,10 @@ export const signup = async (req, res) => {
     });
 
     // generate token & store in cookie
-    generateToken(newUser._id, res);
+    const token = generateToken(newUser._id, res);
     res.status(201).json({
       message: "User registered successfully",
+      token,
       user: {
         id: newUser._id,
          email: newUser.email,
@@ -86,10 +87,11 @@ export const login = async (req, res) => {
       }
   
       // generate token & store in cookie
-      generateToken(user._id, res);
+      const token = generateToken(user._id, res);
   
       res.status(200).json({
         message: "Login successful",
+        token,
         user: {
           id: user._id,
           email: user.email,
