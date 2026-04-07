@@ -14,15 +14,27 @@ function Login() {
 
   const handleSubmit = async () => {
     const res = await loginUser(form);
-
-    if (res.user) {
-      console.log("[DEBUG] User",res.user);
-      
-      localStorage.setItem("user", JSON.stringify(res.user));
-      window.location.href = "/chat";
-    } else {
-      alert(res.message);
+    if (!res) {
+      alert("Login failed (no response). Check backend and CORS.");
+      return;
     }
+
+    const user = res?.user;
+    if (!user) {
+      alert(res?.message || "Login failed");
+      return;
+    }
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    // Token is optional: backend also sets an httpOnly cookie used by API + socket auth.
+    if (typeof res.token === "string" && res.token.trim().length > 0) {
+      localStorage.setItem("token", res.token);
+    } else {
+      localStorage.removeItem("token");
+    }
+
+    window.location.href = "/chat";
   };
 
   return (
