@@ -16,8 +16,9 @@ function Login() {
     const res = await loginUser(form);
 
     if (res.user) {
+      console.log("[DEBUG] User",res.user);
+      
       localStorage.setItem("user", JSON.stringify(res.user));
-      localStorage.setItem("token", res.data.token);
       window.location.href = "/chat";
     } else {
       alert(res.message);
