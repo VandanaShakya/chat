@@ -11,7 +11,7 @@ export const signup = async (req, res) => {
       return res.status(400).json({
         message: "All fields are required"
       });
-    }
+    } 
 
     // check existing user
     const existingUser = await User.findOne({
@@ -29,13 +29,13 @@ export const signup = async (req, res) => {
 
     // create user
     const newUser = await User.create({
-       userName,
+      userName,
       email,
       password: hashedPassword
     });
 
     // generate token & store in cookie
-
+    generateToken(newUser._id, res);
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -108,6 +108,10 @@ export const login = async (req, res) => {
 
   export const logout = (req, res) => {
     res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
       maxAge: 0
     });
   

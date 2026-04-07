@@ -86,7 +86,7 @@ function Chat() {
     };
 
     socket.on("connect", onConnect);
-    socket.on("receive_message", onReceive);
+     socket.on("receive_message", onReceive);
 
     return () => {
       socket.off("connect", onConnect);
@@ -128,29 +128,84 @@ function Chat() {
   // 📤 SEND MESSAGE
   const sendMessage = async () => {
     if (!message.trim() || !selectedUser) return;
+    const text = message.trim();
+    const targetUserId = selectedUser._id;
+    const optimisticId = `tmp-${Date.now()}`;
+
+    const optimisticMessage = {
+      _id: optimisticId,
+      sender: currentUserId,
+      receiver: targetUserId,
+      message: text,
+      createdAt: new Date().toISOString(),
+      __optimistic: true,
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+    setMessagesByUser((prev) => {
+      const next = { ...prev };
+      const existing = next[targetUserId] || [];
+      next[targetUserId] = [...existing, optimisticMessage];
+      return next;
+    });
+    setMessage("");
 
     // 🔥 Show AI typing immediately
     if (selectedUser.isAI) {
       setIsTyping(true);
     }
 
-    const res = await fetch(
-      `${import.meta.env.VITE_BASE_URL}/message/send/${selectedUser._id}`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message })
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/message/send/${targetUserId}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: text })
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Failed to send message");
+
+      if (selectedUser.isAI) {
+        // AI endpoint returns only AI reply; keep optimistic user message and append AI response
+        setMessages((prev) => [...prev, data]);
+        setMessagesByUser((prev) => {
+          const next = { ...prev };
+          const existing = next[targetUserId] || [];
+          next[targetUserId] = [...existing, data];
+          return next;
+        });
+      } else {
+        // Normal endpoint returns sender message; replace optimistic item with DB item
+        setMessages((prev) =>
+          prev.map((msg) => (msg._id === optimisticId ? data : msg))
+        );
+        setMessagesByUser((prev) => {
+          const next = { ...prev };
+          const existing = next[targetUserId] || [];
+          next[targetUserId] = existing.map((msg) =>
+            msg._id === optimisticId ? data : msg
+          );
+          return next;
+        });
       }
-    );
-
-    const data = await res.json();
-
-    setMessages(prev => [...prev, data]);
-
-    setMessage("");
+    } catch (error) {
+      setIsTyping(false);
+      // Roll back optimistic message if send fails
+      setMessages((prev) => prev.filter((msg) => msg._id !== optimisticId));
+      setMessagesByUser((prev) => {
+        const next = { ...prev };
+        const existing = next[targetUserId] || [];
+        next[targetUserId] = existing.filter((msg) => msg._id !== optimisticId);
+        return next;
+      });
+      console.log(error.message);
+    }
   };
 
   const logout = () => {
@@ -158,6 +213,8 @@ function Chat() {
       .then((data) => console.log(data.message))
       .catch(console.log);
 
+    localStorage.removeItem("user");
+    localStorage.removeItem(LAST_SELECTED_USER_KEY);
     window.location.href = "/";
   };
 
