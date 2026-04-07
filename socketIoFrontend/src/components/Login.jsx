@@ -17,6 +17,7 @@ function Login() {
 
     if (res.user) {
       localStorage.setItem("user", JSON.stringify(res.user));
+      localStorage.setItem("token", res.data.token);
       window.location.href = "/chat";
     } else {
       alert(res.message);
