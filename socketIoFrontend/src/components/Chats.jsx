@@ -13,8 +13,7 @@ function Chat() {
   const bottomRef = useRef(null);
   const selectedUserRef = useRef(null);
 
-  const USERS_API = `${import.meta.env.VITE_BASE_URL}/message/users`;
-  const HISTORY_API_BASE = `${import.meta.env.VITE_BASE_URL}/message/get`;
+   const HISTORY_API_BASE = `${import.meta.env.VITE_BASE_URL}/message/get`;
 
   const LAST_SELECTED_USER_KEY = "lastSelectedChatUserId";
 
@@ -23,7 +22,11 @@ function Chat() {
 
   // 🔥 Fetch users (AI included automatically)
   useEffect(() => {
-    fetch(USERS_API, { credentials: "include" })
+    fetch(`${import.meta.env.VITE_BASE_URL}/message/users`, 
+      {
+        credentials: "include"
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         if (!Array.isArray(data)) return;
