@@ -38,10 +38,15 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: { 
-    origin: allowedOrigins.length ? allowedOrigins : true,
+    origin : "http://localhost:5173",
+    // origin: allowedOrigins.length ? allowedOrigins : true,
     credentials: true
   }
 });
+
+// app.use("/", (req, res)=>{
+//   res.send("backend running hurrey !!")
+//   })
 
 setupSocket(io)
 

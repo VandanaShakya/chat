@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"; // ✅ import Link
 function Login() {
   const [form, setForm] = useState({
     email: "",  
-    password: ""
+    password: ""  
   });
 
   const handleChange = (e) => {
@@ -67,7 +67,7 @@ function Login() {
         {/* ✅ Signup Link Added */}
         <p className="text-center text-sm">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-500 underline">
+          <Link to="/sign-up" className="text-blue-500 underline">
             Signup
           </Link>
         </p>

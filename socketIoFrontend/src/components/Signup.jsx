@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router"
 import { signupUser } from "../api/api.js";
 
 function Signup() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     userName: "",
     email: "",
@@ -14,8 +17,17 @@ function Signup() {
 
   const handleSubmit = async () => {
     const res = await signupUser(form);
-   };
+    if (!res) {
+      alert("Signup failed (no response). Check backend and CORS.");
+      return;
+    }
 
+    const user = res?.user;
+    if (!user) {
+      alert(res?.message || "Signup failed");
+      return;
+    }
+    navigate("/chat");
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="bg-white p-6 rounded shadow w-80 space-y-3">
@@ -53,5 +65,6 @@ function Signup() {
     </div>
   );
 }
+}
 
-export default Signup;
+export default Signup

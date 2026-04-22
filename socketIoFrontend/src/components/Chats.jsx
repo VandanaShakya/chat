@@ -9,6 +9,8 @@ function Chat() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isTyping, setIsTyping] = useState(false); // 🔥 ADDED
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFilePreviewUrl, setSelectedFilePreviewUrl] = useState("");
 
   const bottomRef = useRef(null);
   const selectedUserRef = useRef(null);
@@ -64,7 +66,7 @@ function Chat() {
     const onReceive = (data) => {
       console.log("📩 Received:", data);
 
-      // 🔥 Stop typing when AI reply comes
+      // 🔥 Stop typing when AI reply comes 
       if (selectedUserRef.current?.isAI) {
         setIsTyping(false);
       }
@@ -128,10 +130,18 @@ function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]); // 🔥 include typing
 
+  // Cleanup preview URL
+  useEffect(() => {
+    return () => {
+      if (selectedFilePreviewUrl) URL.revokeObjectURL(selectedFilePreviewUrl);
+    };
+  }, [selectedFilePreviewUrl]);
+
   // 📤 SEND MESSAGE
   const sendMessage = async () => {
-    if (!message.trim() || !selectedUser) return;
+    if (!selectedUser) return;
     const text = message.trim();
+    if (!text && !selectedFile) return;
     const targetUserId = selectedUser._id;
     const optimisticId = `tmp-${Date.now()}`;
 
@@ -139,7 +149,8 @@ function Chat() {
       _id: optimisticId,
       sender: currentUserId,
       receiver: targetUserId,
-      message: text,
+      message: text || "",
+      imageUrl: selectedFilePreviewUrl || "",
       createdAt: new Date().toISOString(),
       __optimistic: true,
     };
@@ -152,6 +163,8 @@ function Chat() {
       return next;
     });
     setMessage("");
+    setSelectedFile(null);
+    setSelectedFilePreviewUrl("");
 
     // 🔥 Show AI typing immediately
     if (selectedUser.isAI) {
@@ -159,15 +172,16 @@ function Chat() {
     }
 
     try {
+      const form = new FormData();
+      if (text) form.append("message", text);
+      if (selectedFile) form.append("image", selectedFile);
+
       const res = await fetch(
         `${import.meta.env.VITE_BASE_URL}/message/send/${targetUserId}`,
         {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ message: text })
+          body: form,
         }
       );
 
@@ -280,7 +294,23 @@ function Chat() {
                     : "bg-gray-300 text-black"
                 }`}
               >
-                {msg.message}
+                {!!msg.message && <div className="whitespace-pre-wrap">{msg.message}</div>}
+
+                {!!msg.imageUrl && (
+                  <a
+                    href={msg.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block mt-2"
+                  >
+                    <img
+                      src={msg.imageUrl}
+                      alt="attachment"
+                      className="max-w-full max-h-64 rounded"
+                      loading="lazy"
+                    />
+                  </a>
+                )}
               </div>
             </div>
           ))}
@@ -295,7 +325,23 @@ function Chat() {
           <div ref={bottomRef}></div>
         </div>
 
-        <div className="flex border-t">
+        <div className="flex border-t items-center gap-2 p-2">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setSelectedFile(file);
+
+              if (selectedFilePreviewUrl) URL.revokeObjectURL(selectedFilePreviewUrl);
+              setSelectedFilePreviewUrl(file ? URL.createObjectURL(file) : "");
+
+              // allow re-selecting the same file
+              e.target.value = "";
+            }}
+            className="text-sm"
+          />
+
           <input
             type="text"
             className="flex-1 p-3 outline-none"
