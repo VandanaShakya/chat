@@ -1,7 +1,7 @@
 import React from 'react'
-import Chat from './components/Chats'
 import { Routes, Route } from 'react-router-dom'
-import Signup from './components/Signup'
+import Chat from './components/Chats'
+import Signup from './components/Signup.jsx'
 import Login from './components/Login'
 
 const App = () => {
@@ -10,8 +10,8 @@ const App = () => {
      <Routes>
 
       <Route path="/" element={<Login/>}/>
-      <Route path="/sign-up" element={<Signup/>}/>
-
+      <Route path="/signup" element={<Signup/>}/>
+      {/* <Route path="/sign-up" element={<h1 style={{color:"red"}}>TEST PAGE</h1>} /> */}
       <Route path="/chat" element={<Chat/>}/>
      </Routes>
     </>

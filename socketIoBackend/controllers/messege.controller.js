@@ -118,6 +118,7 @@ export const sendMessage = async (req, res) => {
       message: message || undefined,
       imageUrl: imageUrl || undefined,
     });
+    console.log("NEW MESSAGE:", newMsg);
 
     emitToUser(receiver, "receive_message", newMsg);
 
@@ -169,5 +170,86 @@ export const createAIUser = async () => {
     });
 
     console.log("✅ AI user created");
+  }
+  else {  
+    console.log("❌ AI user already exists");
+  }
+  return exists;
+};
+
+// delete messge //
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+
+    const msg = await Message.findById(messageId);
+
+    if (!msg) {
+      return res.status(404).json({ message: "Message not found" });
+    } 
+
+    // 🔒 Only sender can delete
+    if (msg.sender.toString() !== req.userId) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+    console.log("MESSAGE SENDER:", msg.sender.toString());
+console.log("USER ID:", req.userId);
+
+    await msg.deleteOne();
+
+    // 🔔 Notify receiver
+    emitToUser(msg.receiver.toString(), "delete_message", {
+      messageId,
+    });
+
+    // 🔔 Also notify sender (f or sync)
+    emitToUser(req.userId, "delete_message", {
+      messageId,
+    });
+
+    res.json({ message: "Message deleted", messageId });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Delete error" });
+  }
+};
+
+
+// update messege //
+export const updateMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { message } = req.body;
+
+    const msg = await Message.findById(messageId);
+
+    if (!msg) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // 🔒 Only sender can edit
+    if (msg.sender.toString() !== req.userId) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    // ❌ Don’t allow editing image-only messages
+    if (!msg.message) {
+      return res.status(400).json({ message: "Only text messages can be edited" });
+    }
+
+    msg.message = message;
+    await msg.save();
+
+    // 🔔 Emit update event
+    emitToUser(msg.receiver.toString(), "update_message", msg);
+    emitToUser(req.userId, "update_message", msg);
+
+    res.json(msg);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Update error" });
   }
 };

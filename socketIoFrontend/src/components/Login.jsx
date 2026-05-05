@@ -28,11 +28,9 @@ function Login() {
     localStorage.setItem("user", JSON.stringify(user));
 
     // Token is optional: backend also sets an httpOnly cookie used by API + socket auth.
-    if (typeof res.token === "string" && res.token.trim().length > 0) {
-      localStorage.setItem("token", res.token);
-    } else {
-      localStorage.removeItem("token");
-    }
+    // if (typeof res.token === "string" && res.token.trim().length > 0) {
+    //   localStorage.setItem("token", res.token);
+    // } 
 
     window.location.href = "/chat";
   };
@@ -67,7 +65,7 @@ function Login() {
         {/* ✅ Signup Link Added */}
         <p className="text-center text-sm">
           Don't have an account?{" "}
-          <Link to="/sign-up" className="text-blue-500 underline">
+          <Link to="/signup" className="text-blue-500 underline">
             Signup
           </Link>
         </p>
