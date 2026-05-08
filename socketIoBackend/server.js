@@ -21,24 +21,16 @@
     .map((s) => s.trim())
     .filter(Boolean);
 
-  app.use(
-    cors({
-      origin(origin, callback) {
-        // allow non-browser clients or same-origin
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.length === 0) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        return callback(new Error(`CORS blocked for origin: ${origin}`));
-      },
-      credentials: true,
-    })
-  );
+    app.use(cors({
+      origin: true,
+      credentials: true
+    }));
 
   const server = http.createServer(app);
 
   const io = new Server(server, {
     cors: { 
-      // origin : "http://localhost:5173",
+      origin : "*",
       origin: allowedOrigins.length ? allowedOrigins : true,
       credentials: true
     }
@@ -53,9 +45,9 @@
   app.use(express.urlencoded({ extended: true }));
 
   app.use("/api/auth", authRoutes)
-  app.use("/api/message", messageRoutes)
+  app.use("/api/message", )
 
-  const PORT = Number(process.env.PORT) || 4000;
+  const PORT = Number(process.messageRoutesenv.PORT) || 4000;
 
   async function start() {
     try {
@@ -66,7 +58,7 @@
       await connectDB();
       await createAIUser();
 
-      server.listen(PORT, () => {
+      server.listen(PORT, "0.0.0.0", () => {
         console.log(`🚀 Server running on ${PORT}`);
       });
     } catch (err) {
